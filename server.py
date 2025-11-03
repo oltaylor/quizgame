@@ -11,6 +11,7 @@ class Game:
         self.__lobbyCode = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
         self.__clients = []
         self.__status = "waiting" # waiting (for clients), waiting to start, in progress
+        self.__turn = random.randint(0,1)
     
     def addClient(self, client):
         self.__clients.append(client)
@@ -79,7 +80,28 @@ def joinLobby(lobbyCode: str, clientName: str):
         return {"error": "Lobby not found."}
     return {"error": "Lobby code and client name are required to join a lobby."}
 
+@app.get("/api/leave-lobby")
+def leaveLobby(lobbyCode: str, clientName: str):
+    if lobbyCode and clientName:
+        for game in activeGames:
+            if game.getLobbyCode() == lobbyCode:
+                for client in game.getClients():
+                    if client == clientName:
+                        game.removeClient(Client(clientName))
+                        return {"message": f"{clientName} left lobby {lobbyCode}."}
+                return {"error": "Client not found in the lobby."}
+        return {"error": "Lobby not found."}
+    return {"error": "Lobby code and client name are required to leave a lobby."}
 
+@app.get("/api/start-game")
+def startGame(lobbyCode: str):
+    if lobbyCode:
+        for game in activeGames:
+            if game.getLobbyCode() == lobbyCode:
+                if len(game.getClients()) == 2:
+                    game.setStatus("in progress")
+                return {"message": f"Game in lobby {lobbyCode} has started."}
+        return {"error": "Lobby not found."}
 
 if __name__ == "__main__":
     import uvicorn
