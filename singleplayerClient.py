@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import random
-import quiz
+import jsonGetter
 
 CLIENT_VERSION = "PRE-ALPHA"
 SERVER = "localhost:8000"
@@ -39,12 +39,22 @@ class LobbyScreen:
 class GameScreen:
     def __init__(self, gameWindow):
         self.__window = gameWindow
+        self.__score = 0 # To be replaced with API
         self.__title = Title(self.__window.getWindow())
+        self.__activeGame = self.getGame() # pick game, eventually from server
+        self.__resultLabel = None
+
+        self.__scoreLabel = ttk.Label(self.__window.getWindow(), text=f"Score: {self.__score}", font=("Segoe UI", 16))
+        self.__scoreLabel.pack(pady=10)
+    
         self.__gameFrame = ttk.Frame(self.__window.getWindow())
         self.__gameFrame.pack()
-        self.__activeGame = None
-        self.quiz()
-    
+
+        if self.__activeGame == "quiz":
+            self.quiz()
+        elif self.__activeGame == "charades":
+            self.charades()
+
     def getWindow(self):
         return self.__window.getWindow()
     
@@ -53,40 +63,78 @@ class GameScreen:
         # 2 - charades
         # 3 - who am i
         # 4 - pictionary?
-        choice = random.randint(1,4)
-        if self.__activeGame == 1:
-            self.__activeGame = "quiz"
-        elif self.__activeGame == 2:
-            self.__activeGame = "charades"
-        elif self.__activeGame == 3:
-            self.__activeGame = "whoami"
-        elif self.__activeGame == 4:
-            self.__activeGame = "pictionary"
-        return choice
+        choice = random.randint(1,2) # currently only quiz and charades
+        if choice == 1:
+            return "quiz"
+        elif choice == 2:
+            return "charades"
+        elif choice == 3:
+            return "whoami"
+        elif choice == 4:
+            return "pictionary"
 
     def quiz(self):
-        question = quiz.getQuestion()
+        question = jsonGetter.getQuestion()
         qLabel = ttk.Label(self.__gameFrame, text=question['question'], font=("Segoe UI", 20))
         qLabel.pack(pady=20)
         for option, text in question['options'].items():
-            oButton = ttk.Button(self.__gameFrame, text=text, command=lambda opt=option: self.checkAnswer(opt, question['answer']))
+            oButton = ttk.Button(self.__gameFrame, text=text, command=lambda opt=option: self.checkQuizAnswer(opt, question['answer']))
             oButton.pack(pady=10)
 
-    def quizReset(self):
+    def reset(self):
         self.__gameFrame.destroy()
         self.__gameFrame = ttk.Frame(self.__window.getWindow())
-        self.quiz()
+        self.__gameFrame.pack()
+        if self.__activeGame == "quiz":
+            self.quiz()
+        elif self.__activeGame == "charades":
+            self.charades()
 
-    
-    def checkAnswer(self, selected, correct):
+    def checkQuizAnswer(self, selected, correct):
         if selected == correct:
             result = "Correct!"
-            self.__window.getWindow().after(2000, self.quizReset)
+            self.__score += 1
+            self.__window.getWindow().after(2000, self.reset)
         else:
             result = f"Wrong! The correct answer was {correct}."
-        resultLabel = ttk.Label(self.__window.getWindow(), text=result, font=("Segoe UI", 16))
-        resultLabel.pack(pady=20)
-        
+        self.__resultLabel = ttk.Label(self.__gameFrame, text=result, font=("Segoe UI", 16))
+        self.__resultLabel.pack(pady=20)
+
+    
+    def updateScore(self, points):
+        self.__score += points
+        self.__scoreLabel.config(text=f"Score: {self.__score}")
+    
+    def charades(self):
+        titleLabel = ttk.Label(self.__gameFrame, text="Charades", font=("Segoe UI", 20))
+        titleLabel.pack(pady=20)
+
+        turnScreenLabel = ttk.Label(self.__gameFrame, text="Turn the screen so only one player can see it!", font=("Segoe UI", 14))
+        turnScreenLabel.pack(pady=10)
+
+        revealButton = ttk.Button(self.__gameFrame, text="Reveal Charade", command=lambda: self.revealCharade(revealButton))
+        revealButton.pack(pady=10)
+
+    def revealCharade(self, button):
+        button.config(state="disabled")
+        charade = jsonGetter.getCharade()
+        charadeLabel = ttk.Label(self.__gameFrame, text=charade, font=("Segoe UI", 16))
+        charadeLabel.pack(pady=20)
+
+        correctButton = ttk.Button(self.__gameFrame, text="Correct", command=lambda: self.charadesAnswerPressed(True))
+        correctButton.pack(pady=10) 
+
+        wrongButton = ttk.Button(self.__gameFrame, text="Wrong", command=lambda: self.charadesAnswerPressed(False))
+        wrongButton.pack(pady=10)
+
+    def charadesAnswerPressed(self, correct):
+        if correct:
+            self.updateScore(1)
+            self.__resultLabel = ttk.Label(self.__gameFrame, text="Correct!", font=("Segoe UI", 16))
+        else:
+            self.__resultLabel = ttk.Label(self.__gameFrame, text="Wrong!", font=("Segoe UI", 16))
+        self.__window.getWindow().after(2000, self.reset)
+
 
 class Title:
     def __init__(self, parent):
