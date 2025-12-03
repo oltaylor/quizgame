@@ -66,7 +66,7 @@ class GameScreen:
 
     def quiz(self):
         question = jsonGetter.getQuestion()
-        qLabel = ttk.Label(self.__gameFrame, text=question['question'], font=("Segoe UI", 20))
+        qLabel = ttk.Label(self.__gameFrame, text=question['question'], font=("Segoe UI", 20), wraplength=600, justify="center")
         qLabel.pack(pady=20)
         for option, text in question['options'].items():
             oButton = ttk.Button(self.__gameFrame, text=text, command=lambda opt=option: self.checkQuizAnswer(opt, question['answer']))
@@ -136,7 +136,7 @@ class GameScreen:
         titleLabel.pack(pady=20)
 
         whoami = jsonGetter.getWhoAmI()
-        promptLabel = ttk.Label(self.__gameFrame, text=f"{whoami["question"]}", font=("Segoe UI", 16))
+        promptLabel = ttk.Label(self.__gameFrame, text=f"{whoami["question"]}", font=("Segoe UI", 16), wraplength=600, justify="center")
         promptLabel.pack(pady=20)
 
         # display option buttons

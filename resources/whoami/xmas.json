@@ -1,122 +1,242 @@
 [
-  {
-    "question": "I guide a sleigh with a glowing red nose.",
-    "options": ["Dasher", "Vixen", "Rudolph", "Blitzen"],
-    "answer": "Rudolph"
-  },
-  {
-    "question": "I live at the North Pole and wear a red suit.",
-    "options": ["The Grinch", "Santa Claus", "Buddy the Elf", "Jack Frost"],
-    "answer": "Santa Claus"
-  },
-  {
-    "question": "I try to steal Christmas from Whoville.",
-    "options": ["Olaf", "The Grinch", "Scrooge", "Krampus"],
-    "answer": "The Grinch"
-  },
-  {
-    "question": "I am Santa's wife.",
-    "options": ["Mrs. Claus", "Cindy-Lou", "Snow Queen", "Tinker Bell"],
-    "answer": "Mrs. Claus"
-  },
-  {
-    "question": "I bring gifts on the 6th of December in some countries.",
-    "options": ["Saint Patrick", "Saint Nicholas", "The Snowman", "Frosty"],
-    "answer": "Saint Nicholas"
-  },
-  {
-    "question": "I melt when the weather gets warm.",
-    "options": ["Frosty the Snowman", "Jack Skellington", "Krampus", "Santa"],
-    "answer": "Frosty the Snowman"
-  },
-  {
-    "question": "I help Santa by making toys.",
-    "options": ["Leprechauns", "Elves", "Fairies", "Reindeer"],
-    "answer": "Elves"
-  },
-  {
-    "question": "I am the main character in Home Alone.",
-    "options": ["Kevin McCallister", "Buzz", "Uncle Frank", "Harry"],
-    "answer": "Kevin McCallister"
-  },
-  {
-    "question": "I am a red-and-white-striped festive candy.",
-    "options": ["Gumdrop", "Candy Cane", "Marshmallow", "Lollipop"],
-    "answer": "Candy Cane"
-  },
-  {
-    "question": "I like warm hugs.",
-    "options": ["Elsa", "Olaf", "Kristoff", "Anna"],
-    "answer": "Olaf"
-  },
-  {
-    "question": "I am known as the 'King of Christmas' because of my festive music.",
-    "options": ["Elvis Presley", "Michael Bublé", "Bing Crosby", "Frank Sinatra"],
-    "answer": "Michael Bublé"
-  },
-  {
-    "question": "I bring coal to naughty children in folklore.",
-    "options": ["Santa", "Krampus", "Jack Frost", "Rudolph"],
-    "answer": "Krampus"
-  },
-  {
-    "question": "I said 'Bah, humbug!'.",
-    "options": ["Scrooge", "The Grinch", "Jack Frost", "Santa"],
-    "answer": "Scrooge"
-  },
-  {
-    "question": "I am a snow queen with ice powers.",
-    "options": ["Tinker Bell", "Elsa", "Anna", "Rapunzel"],
-    "answer": "Elsa"
-  },
-  {
-    "question": "I am famous for singing the song 'All I Want for Christmas Is You.'",
-    "options": ["Ariana Grande", "Kelly Clarkson", "Mariah Carey", "Taylor Swift"],
-    "answer": "Mariah Carey"
-  },
-  {
-    "question": "I am cheeky and report behaviour back to Santa.",
-    "options": ["Toy Soldier", "Nutcracker", "Elf on the Shelf", "Snowman"],
-    "answer": "Elf on the Shelf"
-  },
-  {
-    "question": "I am the town where Buddy the Elf's biological father lives.",
-    "options": ["New York", "Chicago", "Boston", "Philadelphia"],
-    "answer": "New York"
-  },
-  {
-    "question": "I am the reindeer who shares my name with a famous Roman god.",
-    "options": ["Cupid", "Comet", "Vixen", "Donner"],
-    "answer": "Cupid"
-  },
-  {
-    "question": "I am the lead singer of the original 1984 'Last Christmas'.",
-    "options": ["George Michael", "Bono", "Paul McCartney", "Elton John"],
-    "answer": "George Michael"
-  },
-  {
-    "question": "I am the main antagonist in The Nightmare Before Christmas.",
-    "options": ["Jack Skellington", "Oogie Boogie", "Sally", "The Mayor"],
-    "answer": "Oogie Boogie"
-  },
-  {
-    "question": "I am the reindeer who is said to be 'quickest' in some folklore versions.",
-    "options": ["Blitzen", "Prancer", "Comet", "Dasher"],
-    "answer": "Blitzen"
-  },
-  {
-    "question": "I am the plant that people traditionally kiss under.",
-    "options": ["Holly", "Mistletoe", "Ivy", "Poinsettia"],
-    "answer": "Mistletoe"
-  },
-  {
-    "question": "I am the Christmas song that describes 'five gold rings'.",
-    "options": ["Jingle Bells", "Deck the Halls", "12 Days of Christmas", "O Christmas Tree"],
-    "answer": "12 Days of Christmas"
-  },
-  {
-    "question": "I am the fruit-based dessert set on fire with brandy.",
-    "options": ["Yule Log", "Fruitcake", "Christmas Pudding", "Mince Pie"],
-    "answer": "Christmas Pudding"
-  }
+    {
+        "question": "I guide a sleigh with a glowing red nose.",
+        "options": [
+            "Dasher",
+            "Vixen",
+            "Rudolph",
+            "Blitzen"
+        ],
+        "answer": "Rudolph"
+    },
+    {
+        "question": "I live at the North Pole and wear a red suit.",
+        "options": [
+            "The Grinch",
+            "Santa Claus",
+            "Buddy the Elf",
+            "Jack Frost"
+        ],
+        "answer": "Santa Claus"
+    },
+    {
+        "question": "I try to steal Christmas from Whoville.",
+        "options": [
+            "Olaf",
+            "The Grinch",
+            "Scrooge",
+            "Krampus"
+        ],
+        "answer": "The Grinch"
+    },
+    {
+        "question": "I am Santa's wife.",
+        "options": [
+            "Mrs. Claus",
+            "Cindy-Lou",
+            "Snow Queen",
+            "Tinker Bell"
+        ],
+        "answer": "Mrs. Claus"
+    },
+    {
+        "question": "I bring gifts on the 6th of December in some countries.",
+        "options": [
+            "Saint Patrick",
+            "Saint Nicholas",
+            "The Snowman",
+            "Frosty"
+        ],
+        "answer": "Saint Nicholas"
+    },
+    {
+        "question": "I melt when the weather gets warm.",
+        "options": [
+            "Frosty the Snowman",
+            "Jack Skellington",
+            "Krampus",
+            "Santa"
+        ],
+        "answer": "Frosty the Snowman"
+    },
+    {
+        "question": "I help Santa by making toys.",
+        "options": [
+            "Leprechauns",
+            "Elves",
+            "Fairies",
+            "Reindeer"
+        ],
+        "answer": "Elves"
+    },
+    {
+        "question": "I am the main character in Home Alone.",
+        "options": [
+            "Kevin McCallister",
+            "Buzz",
+            "Uncle Frank",
+            "Harry"
+        ],
+        "answer": "Kevin McCallister"
+    },
+    {
+        "question": "I am a red-and-white-striped festive candy.",
+        "options": [
+            "Gumdrop",
+            "Candy Cane",
+            "Marshmallow",
+            "Lollipop"
+        ],
+        "answer": "Candy Cane"
+    },
+    {
+        "question": "I like warm hugs.",
+        "options": [
+            "Elsa",
+            "Olaf",
+            "Kristoff",
+            "Anna"
+        ],
+        "answer": "Olaf"
+    },
+    {
+        "question": "I am known as the 'King of Christmas' because of my festive music.",
+        "options": [
+            "Elvis Presley",
+            "Michael Bublé",
+            "Bing Crosby",
+            "Frank Sinatra"
+        ],
+        "answer": "Michael Bublé"
+    },
+    {
+        "question": "I bring coal to naughty children in folklore.",
+        "options": [
+            "Santa",
+            "Krampus",
+            "Jack Frost",
+            "Rudolph"
+        ],
+        "answer": "Krampus"
+    },
+    {
+        "question": "I said 'Bah, humbug!'.",
+        "options": [
+            "Scrooge",
+            "The Grinch",
+            "Jack Frost",
+            "Santa"
+        ],
+        "answer": "Scrooge"
+    },
+    {
+        "question": "I am a snow queen with ice powers.",
+        "options": [
+            "Tinker Bell",
+            "Elsa",
+            "Anna",
+            "Rapunzel"
+        ],
+        "answer": "Elsa"
+    },
+    {
+        "question": "I am famous for singing the song 'All I Want for Christmas Is You.'",
+        "options": [
+            "Ariana Grande",
+            "Kelly Clarkson",
+            "Mariah Carey",
+            "Taylor Swift"
+        ],
+        "answer": "Mariah Carey"
+    },
+    {
+        "question": "I am cheeky and report behaviour back to Santa.",
+        "options": [
+            "Toy Soldier",
+            "Nutcracker",
+            "Elf on the Shelf",
+            "Snowman"
+        ],
+        "answer": "Elf on the Shelf"
+    },
+    {
+        "question": "I am the town where Buddy the Elf's biological father lives.",
+        "options": [
+            "New York",
+            "Chicago",
+            "Boston",
+            "Philadelphia"
+        ],
+        "answer": "New York"
+    },
+    {
+        "question": "I am the reindeer who shares my name with a famous Roman god.",
+        "options": [
+            "Cupid",
+            "Comet",
+            "Vixen",
+            "Donner"
+        ],
+        "answer": "Cupid"
+    },
+    {
+        "question": "I am the lead singer of the original 1984 'Last Christmas'.",
+        "options": [
+            "George Michael",
+            "Bono",
+            "Paul McCartney",
+            "Elton John"
+        ],
+        "answer": "George Michael"
+    },
+    {
+        "question": "I am the main antagonist in The Nightmare Before Christmas.",
+        "options": [
+            "Jack Skellington",
+            "Oogie Boogie",
+            "Sally",
+            "The Mayor"
+        ],
+        "answer": "Oogie Boogie"
+    },
+    {
+        "question": "I am the reindeer who is said to be 'quickest' in some folklore versions.",
+        "options": [
+            "Blitzen",
+            "Prancer",
+            "Comet",
+            "Dasher"
+        ],
+        "answer": "Blitzen"
+    },
+    {
+        "question": "I am the plant that people traditionally kiss under.",
+        "options": [
+            "Holly",
+            "Mistletoe",
+            "Ivy",
+            "Poinsettia"
+        ],
+        "answer": "Mistletoe"
+    },
+    {
+        "question": "I am the Christmas song that describes 'five gold rings'.",
+        "options": [
+            "Jingle Bells",
+            "Deck the Halls",
+            "12 Days of Christmas",
+            "O Christmas Tree"
+        ],
+        "answer": "12 Days of Christmas"
+    },
+    {
+        "question": "I am the fruit-based dessert set on fire with brandy.",
+        "options": [
+            "Yule Log",
+            "Fruitcake",
+            "Christmas Pudding",
+            "Mince Pie"
+        ],
+        "answer": "Christmas Pudding"
+    }
 ]
