@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 import random
 import string
+from datetime import datetime
+import time
 
 app = FastAPI()
 
@@ -100,7 +102,8 @@ def startGame(lobbyCode: str):
             if game.getLobbyCode() == lobbyCode:
                 if len(game.getClients()) == 2:
                     game.setStatus("in progress")
-                return {"message": f"Game in lobby {lobbyCode} has started."}
+                
+                return {"message": f"Game in lobby {lobbyCode} is starting."}
         return {"error": "Lobby not found."}
 
 if __name__ == "__main__":

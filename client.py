@@ -112,7 +112,9 @@ class HostOptions:
         self.__button = ttk.Button(self.__frame, text="Start Game", command=self.startGame)
         self.__button.pack()
         self.__button.config(state="disabled")
-        
+        self.__lobbyText = ttk.Label(self.__frame, text=f"Lobby Code: {self.__lobbyCode}", font=("Segoe UI", 15))
+        self.__lobbyText.pack()
+
         self.__querying = True
         threading.Thread(target=self.queryLobby).start()
 
@@ -130,7 +132,9 @@ class HostOptions:
                     self.__querying = False
     
     def startGame(self):
-        print("Stub")
+        response = requests.get(f"http://{SERVER}/api/start-game?lobbyCode={self.__lobbyCode}")
+        if response.status_code == 200:
+            if response.json()
 
 if __name__ == "__main__":
     screen = LobbyScreen(Window())
