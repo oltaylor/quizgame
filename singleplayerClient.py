@@ -1,13 +1,17 @@
-import requests
-import time
+# import requests
+# import time
 import tkinter as tk
 from tkinter import ttk
-import threading
+# import threading
 import random
 import jsonGetter
+# from pydub import AudioSegment
+# from pydub.playback import play
+# import os
 
 CLIENT_VERSION = "PRE-ALPHA"
 SERVER = "localhost:8000"
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Window:
     def __init__(self):
@@ -154,6 +158,7 @@ class GameScreen:
             result = f"Wrong! The correct answer was {correct}."
         self.__resultLabel = ttk.Label(self.__gameFrame, text=result, font=("Segoe UI", 16))
         self.__resultLabel.pack(pady=20)
+
 
 
 class Title:
