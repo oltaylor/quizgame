@@ -1,111 +1,55 @@
-from fastapi import FastAPI
-import random
-import string
-from datetime import datetime
-import time
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from asyncio import sleep
+import json
+import jsonGetter
 
 app = FastAPI()
 
-activeGames = []
+activeLobbies = []
 
-class Game:
-    def __init__(self):
-        self.__lobbyCode = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-        self.__clients = []
-        self.__status = "waiting" # waiting (for clients), waiting to start, in progress
-        self.__turn = random.randint(0,1)
-    
-    def addClient(self, client):
-        self.__clients.append(client)
+class Lobby:
+    def __init__(self, lobbyCode: str):
+        self.lobbyCode = lobbyCode
+        self.clients = {}
+        self.host = None
 
-    def removeClient(self, client):
-        self.__clients.remove(client)
+    def addClient(self, clientID: str, websocket: WebSocket):
+        self.clients[clientID] = websocket
+        if len(self.clients) == 1:
+            self.host = clientID
 
-    def getLobbyCode(self):
-        return self.__lobbyCode
-    
-    def setStatus(self, status: str):
-        self.__status = status
-    
-    def getStatus(self):
-        return self.__status
+    def getCode(self):
+        return self.lobbyCode
 
-    def getClients(self):
-        return [client.getTeamName() for client in self.__clients]
-    
-    def __str__(self):
-        return f"Lobby: {self.__lobbyCode}"
+@app.websocket("/ws/{lobbyCode}/{clientID}")
+async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str): # subroutine for handling connections
+    await websocket.accept() # accept the connection of any incoming client
+    if lobbyCode not in [lobby.getCode() for lobby in activeLobbies]:
+        # create lobby if not exists
+        newLobby = Lobby(lobbyCode)
+        activeLobbies.append(newLobby)
 
-class Client:
-    def __init__(self, teamName: str):
-        self.__teamName = teamName
-    
-    def setTeamName(self, teamName: str):
-        self.__teamName = teamName
-    
-    def getTeamName(self):
-        return self.__teamName
-    
-    def __str__(self):
-        return f"Client: {self.__teamName}"
+    # add client to lobby
+    for lobby in activeLobbies:
+        if lobby.getCode() == lobbyCode:
+            lobby.addClient(clientID, websocket)
+            await websocket.send_json({"message": f"Joined lobby {lobbyCode} as {clientID}"})
 
-@app.get("/")
-def home():
-    return {"message": "Welcome to the Charades API."}
+    try:
+        while True:
+            data = await websocket.receive_json()
+            print(f"Received from {clientID} in lobby {lobbyCode}: {data}")
 
-@app.get("/api/new-game")
-def newGame(clientName = None):
-    if clientName:
-        game = Game()
-        activeGames.append(game)
-        game.addClient(Client(clientName))
-        return {"lobbyCode": game.getLobbyCode()}
-    else:
-        return {"error": "Client name is required to create a new game."}
+            command = data.get("command")
 
-@app.get("/api/query-lobby")
-def queryLobby(lobbyCode: str):
-    if lobbyCode:
-        for game in activeGames:
-            if game.getLobbyCode() == lobbyCode:
-                return {"status": game.getStatus(), "lobbyCode": game.getLobbyCode(), "clients": game.getClients()}
-        return {"error": "Lobby not found."}
-    return {"error": "Lobby code is required to query a lobby."}
+            if command == "newQuizQuestion":
+                question = jsonGetter.getQuestion()
+                await websocket.send_json({"question": question})
 
-@app.get("/api/join-lobby")
-def joinLobby(lobbyCode: str, clientName: str):
-    if lobbyCode and clientName:
-        for game in activeGames:
-            if game.getLobbyCode() == lobbyCode:
-                game.addClient(Client(clientName))
-                return {"message": f"{clientName} joined lobby {lobbyCode}."}
-        return {"error": "Lobby not found."}
-    return {"error": "Lobby code and client name are required to join a lobby."}
+    except WebSocketDisconnect:
+        print(f"Client {clientID} disconnected from lobby {lobbyCode}")
 
-@app.get("/api/leave-lobby")
-def leaveLobby(lobbyCode: str, clientName: str):
-    if lobbyCode and clientName:
-        for game in activeGames:
-            if game.getLobbyCode() == lobbyCode:
-                for client in game.getClients():
-                    if client == clientName:
-                        game.removeClient(Client(clientName))
-                        return {"message": f"{clientName} left lobby {lobbyCode}."}
-                return {"error": "Client not found in the lobby."}
-        return {"error": "Lobby not found."}
-    return {"error": "Lobby code and client name are required to leave a lobby."}
-
-@app.get("/api/start-game")
-def startGame(lobbyCode: str):
-    if lobbyCode:
-        for game in activeGames:
-            if game.getLobbyCode() == lobbyCode:
-                if len(game.getClients()) == 2:
-                    game.setStatus("in progress")
-                
-                return {"message": f"Game in lobby {lobbyCode} is starting."}
-        return {"error": "Lobby not found."}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
