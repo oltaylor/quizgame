@@ -38,7 +38,6 @@ def websocketHandlerThread(uri):
     asyncio.run(handler())
 
 
-
 class Window:
     def __init__(self):
         self.__window = tk.Tk()
@@ -49,10 +48,24 @@ class Window:
     def getWindow(self):
         return self.__window
 
+
 class LobbyScreen:
     def __init__(self, menuWindow):
         self.__window = menuWindow
         self.__title = Title(self.__window.getWindow())
+
+        self.__lobbyCodeLabel = ttk.Label(self.__window.getWindow(), text="Lobby Code:", font=("Segoe UI", 16))
+        self.__lobbyCodeLabel.pack(pady=10)
+        self.__lobbyCodeEntry = ttk.Entry(self.__window.getWindow(), font=("Segoe UI", 16))
+        self.__lobbyCodeEntry.pack(pady=10)
+
+        self.__teamNameLabel = ttk.Label(self.__window.getWindow(), text="Team Name:", font=("Segoe UI", 16))
+        self.__teamNameLabel.pack(pady=10)
+        self.__teamNameEntry = ttk.Entry(self.__window.getWindow(), font=("Segoe UI", 16))
+        self.__teamNameEntry.pack(pady=10)
+
+        self.__joinLobbyButton = ttk.Button(self.__window.getWindow(), text="Join Lobby", command=self.joinLobby)
+        self.__joinLobbyButton.pack(pady=20)
 
         self.__startButton = ttk.Button(self.__window.getWindow(), text="Start Game", command=self.startGame)
         self.__startButton.pack(pady=20)
@@ -61,18 +74,48 @@ class LobbyScreen:
         self.__window.getWindow().destroy()
         self.__gameScreen = GameScreen(Window())
 
-    
     def getWindow(self):
         return self.__window.getWindow()
+    
+    def joinLobby(self):
+        lobbyCode = self.__lobbyCodeEntry.get()
+        teamName = self.__teamNameEntry.get()
+        print(f"Joining lobby {lobbyCode} as {teamName}")
+
+        # start websocket thread
+        uri = f"ws://{SERVER}/ws/{lobbyCode}/{teamName}" # SERVER const to be replaced by input field later.
+        wsThread = threading.Thread(target=websocketHandlerThread, args=(uri,), daemon=True)
+        wsThread.start()
+        self.pollIncomingMessages()
+
+    def pollIncomingMessages(self):
+        try:
+            while True:
+                message = incomingMessages.get_nowait()
+                print(f"Received message from server: {message}")
+
+                if "status" in message:
+                    status = message["status"]
+                    if status == "lobbyJoined":
+                        print(f"Successfully joined lobby {message['lobbyCode']} as {message['clientID']}")
+                    elif status == "error":
+                        print(f"Error from server: {message['errorMessage']}")
+                    elif status == "start":
+                        print("Game starting!")
+                        self.__window.getWindow().destroy()
+                        self.__gameScreen = GameScreen(Window())
+
+        except queue.Empty:
+            pass
+            
+        self.__window.getWindow().after(100, self.pollIncomingMessages)
 
 
 class GameScreen:
     def __init__(self, gameWindow):
-        self.__availableGames = ["quiz", "charades", "whoami"]
         self.__window = gameWindow
-        self.__score = 0 # To be replaced with API
+        self.__score = 0 # To be replaced with server sync later
         self.__title = Title(self.__window.getWindow())
-        #self.__activeGame = "quiz" # pick game, eventually from server
         self.__resultLabel = None
 
         self.__scoreLabel = ttk.Label(self.__window.getWindow(), text=f"Score: {self.__score}", font=("Segoe UI", 16))
@@ -80,13 +123,6 @@ class GameScreen:
     
         self.__gameFrame = ttk.Frame(self.__window.getWindow())
         self.__gameFrame.pack()
-
-        #if self.__activeGame == "quiz":
-        #    self.quiz()
-        #elif self.__activeGame == "charades":
-        #    self.charades()
-        #elif self.__activeGame == "whoami":
-        #    self.whoAmI()
 
         print("Requesting question from server")
         self.requestNewTask()
@@ -96,9 +132,6 @@ class GameScreen:
 
     def getWindow(self):
         return self.__window.getWindow()
-    
-    def getGame(self):
-        return random.choice(self.__availableGames)
 
     def quiz(self, question, options, answer):
         print("Entering quiz")
@@ -224,8 +257,6 @@ class Title:
         self.__text.pack()
 
 
-if __name__ == "__main__":
-    threading.Thread(target=websocketHandlerThread, args=(f"ws://{SERVER}/ws/TEST/Client1",), daemon=True).start()
-    
+if __name__ == "__main__":    
     screen = LobbyScreen(Window())
     screen.getWindow().mainloop()

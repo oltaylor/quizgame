@@ -34,7 +34,8 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
     for lobby in activeLobbies:
         if lobby.getCode() == lobbyCode:
             lobby.addClient(clientID, websocket)
-            await websocket.send_json({"message": f"Joined lobby {lobbyCode} as {clientID}"})
+            print(f"Client {clientID} joined lobby {lobbyCode}")
+            await websocket.send_json({"status": "lobbyJoined", "lobbyCode": lobbyCode, "clientID": clientID, "isHost": lobby.host == clientID})
 
     try:
         while True:
