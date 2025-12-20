@@ -1,7 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-import random
-import jsonGetter
 import websockets
 import json
 import threading
@@ -67,12 +65,21 @@ class LobbyScreen:
         self.__joinLobbyButton = ttk.Button(self.__window.getWindow(), text="Join Lobby", command=self.joinLobby)
         self.__joinLobbyButton.pack(pady=20)
 
-        self.__startButton = ttk.Button(self.__window.getWindow(), text="Start Game", command=self.startGame)
+        self.__startButton = ttk.Button(self.__window.getWindow(), text="Start Game", command=self.startGame, state="disabled")
         self.__startButton.pack(pady=20)
 
+        self.__teamsFrame = ttk.Frame(self.__window.getWindow())
+        self.__teamsFrame.pack(pady=20)
+        self.__teamsLabel = ttk.Label(self.__teamsFrame, text="Teams in Lobby:", font=("Segoe UI", 16))
+        self.__teamsLabel.pack(pady=10)
+
     def startGame(self):
-        self.__window.getWindow().destroy()
-        self.__gameScreen = GameScreen(Window())
+        lobbyCode = self.__lobbyCodeEntry.get()
+        teamName = self.__teamNameEntry.get()
+        
+        uri = f"ws://{SERVER}/ws/{lobbyCode}/{teamName}"
+        outgoingCommands.put({"command": "start"})
+        
 
     def getWindow(self):
         return self.__window.getWindow()
@@ -80,6 +87,11 @@ class LobbyScreen:
     def joinLobby(self):
         lobbyCode = self.__lobbyCodeEntry.get()
         teamName = self.__teamNameEntry.get()
+
+        self.__lobbyCodeEntry.config(state="disabled") # disable entries to prevent changes after joining
+        self.__teamNameEntry.config(state="disabled")
+        self.__joinLobbyButton.config(state="disabled")
+
         print(f"Joining lobby {lobbyCode} as {teamName}")
 
         # start websocket thread
@@ -98,12 +110,29 @@ class LobbyScreen:
                     status = message["status"]
                     if status == "lobbyJoined":
                         print(f"Successfully joined lobby {message['lobbyCode']} as {message['clientID']}")
+                        if message["isHost"] == True:
+                            self.__startButton.config(state="normal")
+
                     elif status == "error":
                         print(f"Error from server: {message['errorMessage']}")
+
                     elif status == "start":
                         print("Game starting!")
                         self.__window.getWindow().destroy()
                         self.__gameScreen = GameScreen(Window())
+                        
+                    elif status == "teamUpdate":
+                        self.__teamsFrame.destroy()
+                        self.__teamsFrame = ttk.Frame(self.__window.getWindow())
+                        self.__teamsFrame.pack(pady=20)
+                        self.__teamsLabel = ttk.Label(self.__teamsFrame, text="Teams in Lobby:", font=("Segoe UI", 16))
+                        self.__teamsLabel.pack(pady=10)
+
+                        teamNames = message["teamNames"]
+                        for teamName in teamNames:
+                            teamLabel = ttk.Label(self.__teamsFrame, text=teamName, font=("Segoe UI", 14))
+                            teamLabel.pack(pady=5)
+                
 
         except queue.Empty:
             pass

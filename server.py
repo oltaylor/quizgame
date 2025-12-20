@@ -1,7 +1,6 @@
 import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from asyncio import sleep
-import json
 import jsonGetter
 
 app = FastAPI()
@@ -54,7 +53,8 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
             lobby.addClient(clientID, websocket)
             print(f"Client {clientID} joined lobby {lobbyCode}")
             await websocket.send_json({"status": "lobbyJoined", "lobbyCode": lobbyCode, "clientID": clientID, "isHost": lobby.host == clientID})
-
+            for client in lobby.clients.values():
+                await client.getWebSocket().send_json({"status": "teamUpdate", "teamNames": list(lobby.clients.keys())})
     try:
         while True:
             data = await websocket.receive_json()
@@ -84,9 +84,24 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
                             client.addPoints(points)
                             print(f"Client {clientID} in lobby {lobbyCode} now has {client.getPoints()} points")
             
+            elif command == "start":
+                print(f"Starting game in lobby {lobbyCode}")
+                for lobby in activeLobbies:
+                    if lobby.getCode() == lobbyCode:
+                        for client in lobby.clients.values():
+                            await client.getWebSocket().send_json({"status": "start"})
 
     except WebSocketDisconnect:
         print(f"Client {clientID} disconnected from lobby {lobbyCode}")
+        for lobby in activeLobbies:
+            if lobby.getCode() == lobbyCode:
+                if clientID in lobby.clients:
+                    del lobby.clients[clientID]
+                    for client in lobby.clients.values():
+                        await client.getWebSocket().send_json({"status": "teamUpdate", "teamNames": list(lobby.clients.keys())})
+                if len(lobby.clients) == 0:
+                    activeLobbies.remove(lobby)
+                    print(f"Lobby {lobbyCode} removed due to no active clients")
 
 
 if __name__ == "__main__":
