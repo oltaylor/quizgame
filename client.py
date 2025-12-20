@@ -114,7 +114,7 @@ class LobbyScreen:
 class GameScreen:
     def __init__(self, gameWindow):
         self.__window = gameWindow
-        self.__score = 0 # To be replaced with server sync later
+        self.__score = 0 # score is kept track of both client and server side because it can then be displayed instantly without waiting for server response
         self.__title = Title(self.__window.getWindow())
         self.__resultLabel = None
 
@@ -141,35 +141,6 @@ class GameScreen:
             oButton = ttk.Button(self.__gameFrame, text=text, command=lambda opt=option: self.checkQuizAnswer(opt, answer))
             oButton.pack(pady=10)
 
-    def requestNewTask(self):
-        outgoingCommands.put({"command": "newTask"})
-        print(f"Queue size after request: {outgoingCommands.qsize()}")
-
-    def pollIncomingMessages(self):
-        try:
-            while True:
-                message = incomingMessages.get_nowait()
-                print(f"Received message from server: {message}")
-                if "type" in message and "task" in message:
-                    gamemode = message["type"]
-                    task = message["task"]
-                    if gamemode == "quiz":
-                        questionData = task
-                        questionText = questionData["question"]
-                        options = questionData["options"]
-                        answer = questionData["answer"]
-                        self.quiz(questionText, options, answer)
-
-                    elif gamemode == "charades":
-                        self.charades(task)
-                    elif gamemode == "whoami":
-                        self.whoAmI(task)
-                
-        except queue.Empty:
-            pass
-            
-        self.__window.getWindow().after(100, self.pollIncomingMessages)
-
     def reset(self):
         self.__gameFrame.destroy()
         self.__gameFrame = ttk.Frame(self.__window.getWindow())
@@ -191,6 +162,7 @@ class GameScreen:
 
     
     def updateScore(self, points):
+        outgoingCommands.put({"command": "addPoints", "points": points})
         self.__score += points
         self.__scoreLabel.config(text=f"Score: {self.__score}")
     
@@ -246,6 +218,36 @@ class GameScreen:
         self.__window.getWindow().after(2000, self.reset)
         self.__resultLabel = ttk.Label(self.__gameFrame, text=result, font=("Segoe UI", 16))
         self.__resultLabel.pack(pady=20)
+
+    
+    def requestNewTask(self):
+        outgoingCommands.put({"command": "newTask"})
+        print(f"Queue size after request: {outgoingCommands.qsize()}")
+
+    def pollIncomingMessages(self):
+        try:
+            while True:
+                message = incomingMessages.get_nowait()
+                print(f"Received message from server: {message}")
+                if "type" in message and "task" in message:
+                    gamemode = message["type"]
+                    task = message["task"]
+                    if gamemode == "quiz":
+                        questionData = task
+                        questionText = questionData["question"]
+                        options = questionData["options"]
+                        answer = questionData["answer"]
+                        self.quiz(questionText, options, answer)
+
+                    elif gamemode == "charades":
+                        self.charades(task)
+                    elif gamemode == "whoami":
+                        self.whoAmI(task)
+                
+        except queue.Empty:
+            pass
+            
+        self.__window.getWindow().after(100, self.pollIncomingMessages)
 
 
 

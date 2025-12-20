@@ -15,12 +15,30 @@ class Lobby:
         self.host = None
 
     def addClient(self, clientID: str, websocket: WebSocket):
-        self.clients[clientID] = websocket
+        self.clients[clientID] = Client(clientID, websocket)
         if len(self.clients) == 1:
             self.host = clientID
 
     def getCode(self):
         return self.lobbyCode
+    
+class Client:
+    def __init__(self, clientID: str, websocket: WebSocket):
+        self.__clientID = clientID
+        self.__websocket = websocket
+        self.__points = 0
+    
+    def getClientID(self):
+        return self.__clientID
+    
+    def getWebSocket(self):
+        return self.__websocket
+    
+    def getPoints(self):
+        return self.__points
+    
+    def addPoints(self, points: int):
+        self.__points += points
 
 @app.websocket("/ws/{lobbyCode}/{clientID}")
 async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str): # subroutine for handling connections
@@ -56,6 +74,16 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
                     print("Generating new whoami prompt")
                     task = jsonGetter.getWhoAmI()
                 await websocket.send_json({"type": gamemode, "task": task})
+
+            elif command == "addPoints":
+                points = data.get("points", 0) # default to 0 if not provided
+                for lobby in activeLobbies:
+                    if lobby.getCode() == lobbyCode:
+                        client = lobby.clients.get(clientID)
+                        if client:
+                            client.addPoints(points)
+                            print(f"Client {clientID} in lobby {lobbyCode} now has {client.getPoints()} points")
+            
 
     except WebSocketDisconnect:
         print(f"Client {clientID} disconnected from lobby {lobbyCode}")
