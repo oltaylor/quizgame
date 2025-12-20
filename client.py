@@ -6,8 +6,7 @@ import threading
 import asyncio
 import queue
 
-CLIENT_VERSION = "PRE-ALPHA"
-SERVER = "localhost:8000"
+CLIENT_VERSION = "ALPHA"
 
 outgoingCommands = queue.Queue() # bridge between websocket thread and main thread
 incomingMessages = queue.Queue() # messages from server to main thread
@@ -62,7 +61,13 @@ class LobbyScreen:
         self.__teamNameEntry = ttk.Entry(self.__window.getWindow(), font=("Segoe UI", 16))
         self.__teamNameEntry.pack(pady=10)
 
-        self.__joinLobbyButton = ttk.Button(self.__window.getWindow(), text="Join Lobby", command=self.joinLobby)
+        self.__serverLabel = ttk.Label(self.__window.getWindow(), text=f"Server:", font=("Segoe UI", 12))
+        self.__serverLabel.pack(pady=10)
+        self.__serverEntry = ttk.Entry(self.__window.getWindow(), font=("Segoe UI", 12))
+        self.__serverEntry.insert(0, "localhost:8000")
+        self.__serverEntry.pack(pady=5)
+
+        self.__joinLobbyButton = ttk.Button(self.__window.getWindow(), text="Join Lobby", command=lambda: self.joinLobby(self.__serverEntry.get()))
         self.__joinLobbyButton.pack(pady=20)
 
         self.__startButton = ttk.Button(self.__window.getWindow(), text="Start Game", command=self.startGame, state="disabled")
@@ -80,7 +85,7 @@ class LobbyScreen:
     def getWindow(self):
         return self.__window.getWindow()
     
-    def joinLobby(self):
+    def joinLobby(self, server):
         lobbyCode = self.__lobbyCodeEntry.get()
         teamName = self.__teamNameEntry.get()
 
@@ -88,10 +93,10 @@ class LobbyScreen:
         self.__teamNameEntry.config(state="disabled")
         self.__joinLobbyButton.config(state="disabled")
 
-        print(f"Joining lobby {lobbyCode} as {teamName}")
+        print(f"Joining lobby {lobbyCode} as {teamName} on server {server}")
 
         # start websocket thread
-        uri = f"ws://{SERVER}/ws/{lobbyCode}/{teamName}" # SERVER const to be replaced by input field later.
+        uri = f"ws://{server}/ws/{lobbyCode}/{teamName}"
         wsThread = threading.Thread(target=websocketHandlerThread, args=(uri,), daemon=True)
         wsThread.start()
         self.pollIncomingMessages()
@@ -280,7 +285,7 @@ class Title:
     def __init__(self, parent):
         self.__frame = ttk.Frame(parent)
         self.__frame.pack()
-        self.__text = ttk.Label(self.__frame, text="GAME", font=("Segoe UI", 35, "bold"))
+        self.__text = ttk.Label(self.__frame, text="Lukey's Quiz Game", font=("Segoe UI", 35, "bold"))
         self.__text.pack()
 
 
