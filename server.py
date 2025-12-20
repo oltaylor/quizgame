@@ -1,3 +1,4 @@
+import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from asyncio import sleep
 import json
@@ -42,9 +43,18 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
 
             command = data.get("command")
 
-            if command == "newQuizQuestion":
-                question = jsonGetter.getQuestion()
-                await websocket.send_json({"question": question})
+            if command == "newTask":
+                gamemode = random.choice(["charades", "quiz", "whoami"])
+                if gamemode == "quiz":
+                    print("Generating new quiz question")
+                    task = jsonGetter.getQuestion()
+                elif gamemode == "charades":
+                    print("Generating new charades prompt")
+                    task = jsonGetter.getCharade()
+                elif gamemode == "whoami":
+                    print("Generating new whoami prompt")
+                    task = jsonGetter.getWhoAmI()
+                await websocket.send_json({"type": gamemode, "task": task})
 
     except WebSocketDisconnect:
         print(f"Client {clientID} disconnected from lobby {lobbyCode}")

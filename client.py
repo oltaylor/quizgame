@@ -23,7 +23,8 @@ def websocketHandlerThread(uri):
                 except queue.Empty:
                     cmd = None
 
-                if cmd:
+                if cmd is not None:
+                    print(f"Sending command to server: {cmd}")
                     await websocket.send(json.dumps(cmd))
                 
                 try:
@@ -31,6 +32,8 @@ def websocketHandlerThread(uri):
                     incomingMessages.put(json.loads(message))
                 except asyncio.TimeoutError:
                     pass
+        
+                await asyncio.sleep(0.01)
     
     asyncio.run(handler())
 
@@ -85,6 +88,10 @@ class GameScreen:
         #elif self.__activeGame == "whoami":
         #    self.whoAmI()
 
+        print("Requesting question from server")
+        self.requestNewTask()
+
+        print("Starting polling")
         self.pollIncomingMessages()
 
     def getWindow(self):
@@ -93,31 +100,40 @@ class GameScreen:
     def getGame(self):
         return random.choice(self.__availableGames)
 
-    def quiz(self, question, options):
+    def quiz(self, question, options, answer):
         print("Entering quiz")
         qLabel = ttk.Label(self.__gameFrame, text=question, font=("Segoe UI", 20), wraplength=600, justify="center")
         qLabel.pack(pady=20)
         for option, text in options.items():
-            oButton = ttk.Button(self.__gameFrame, text=text, command=lambda opt=option: self.checkQuizAnswer(opt, question['answer']))
+            oButton = ttk.Button(self.__gameFrame, text=text, command=lambda opt=option: self.checkQuizAnswer(opt, answer))
             oButton.pack(pady=10)
 
-    def requestQuestionFromServer(self):
-        outgoingCommands.put({"command": "newQuizQuestion"})
-        while True:
-            try:
-                message = incomingMessages.get_nowait()
-                if message.get("question"):
-                    return message["question"]
-            except queue.Empty:
-                pass
+    def requestNewTask(self):
+        outgoingCommands.put({"command": "newTask"})
+        print(f"Queue size after request: {outgoingCommands.qsize()}")
 
     def pollIncomingMessages(self):
-        while incomingMessages.empty():
-            print("polling")
-            message = incomingMessages.get()
-            
-            if message.get("question"):
-                self.quiz(message["question"], message["options"])
+        try:
+            while True:
+                message = incomingMessages.get_nowait()
+                print(f"Received message from server: {message}")
+                if "type" in message and "task" in message:
+                    gamemode = message["type"]
+                    task = message["task"]
+                    if gamemode == "quiz":
+                        questionData = task
+                        questionText = questionData["question"]
+                        options = questionData["options"]
+                        answer = questionData["answer"]
+                        self.quiz(questionText, options, answer)
+
+                    elif gamemode == "charades":
+                        self.charades(task)
+                    elif gamemode == "whoami":
+                        self.whoAmI(task)
+                
+        except queue.Empty:
+            pass
             
         self.__window.getWindow().after(100, self.pollIncomingMessages)
 
@@ -126,21 +142,17 @@ class GameScreen:
         self.__gameFrame = ttk.Frame(self.__window.getWindow())
         self.__gameFrame.pack()
         
-        self.__activeGame = self.getGame()
-        #if self.__activeGame == "quiz":
-        #    self.quiz()
-        #elif self.__activeGame == "charades":
-        #    self.charades()
-        #elif self.__activeGame == "whoami":
-        #    self.whoAmI()
+        self.requestNewTask()
+        self.pollIncomingMessages()
+
 
     def checkQuizAnswer(self, selected, correct):
         if selected == correct:
             result = "Correct!"
             self.updateScore(1)
-            self.__window.getWindow().after(2000, self.reset)
         else:
             result = f"Wrong! The correct answer was {correct}."
+        self.__window.getWindow().after(2000, self.reset)
         self.__resultLabel = ttk.Label(self.__gameFrame, text=result, font=("Segoe UI", 16))
         self.__resultLabel.pack(pady=20)
 
@@ -149,19 +161,18 @@ class GameScreen:
         self.__score += points
         self.__scoreLabel.config(text=f"Score: {self.__score}")
     
-    def charades(self):
+    def charades(self, charade):
         titleLabel = ttk.Label(self.__gameFrame, text="Charades", font=("Segoe UI", 20))
         titleLabel.pack(pady=20)
 
         turnScreenLabel = ttk.Label(self.__gameFrame, text="Turn the screen so only one player can see it!", font=("Segoe UI", 14))
         turnScreenLabel.pack(pady=10)
 
-        revealButton = ttk.Button(self.__gameFrame, text="Reveal Charade", command=lambda: self.revealCharade(revealButton))
+        revealButton = ttk.Button(self.__gameFrame, text="Reveal Charade", command=lambda: self.revealCharade(revealButton, charade))
         revealButton.pack(pady=10)
 
-    def revealCharade(self, button):
+    def revealCharade(self, button, charade):
         button.config(state="disabled")
-        charade = jsonGetter.getCharade()
         charadeLabel = ttk.Label(self.__gameFrame, text=charade, font=("Segoe UI", 16))
         charadeLabel.pack(pady=20)
 
@@ -180,11 +191,10 @@ class GameScreen:
         self.__window.getWindow().after(2000, self.reset)
 
 
-    def whoAmI(self):
+    def whoAmI(self, whoami):
         titleLabel = ttk.Label(self.__gameFrame, text="Who Am I?", font=("Segoe UI", 20))
         titleLabel.pack(pady=20)
 
-        whoami = jsonGetter.getWhoAmI()
         promptLabel = ttk.Label(self.__gameFrame, text=f"{whoami["question"]}", font=("Segoe UI", 16), wraplength=600, justify="center")
         promptLabel.pack(pady=20)
 
@@ -198,9 +208,9 @@ class GameScreen:
         if selected == correct:
             result = "Correct!"
             self.updateScore(1)
-            self.__window.getWindow().after(2000, self.reset)
         else:
             result = f"Wrong! The correct answer was {correct}."
+        self.__window.getWindow().after(2000, self.reset)
         self.__resultLabel = ttk.Label(self.__gameFrame, text=result, font=("Segoe UI", 16))
         self.__resultLabel.pack(pady=20)
 
@@ -215,7 +225,7 @@ class Title:
 
 
 if __name__ == "__main__":
+    threading.Thread(target=websocketHandlerThread, args=(f"ws://{SERVER}/ws/TEST/Client1",), daemon=True).start()
+    
     screen = LobbyScreen(Window())
     screen.getWindow().mainloop()
-
-    threading.Thread(target=websocketHandlerThread, args=(f"ws://{SERVER}/ws/TEST/Client1",)).start()
