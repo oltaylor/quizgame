@@ -74,10 +74,6 @@ class LobbyScreen:
         self.__teamsLabel.pack(pady=10)
 
     def startGame(self):
-        lobbyCode = self.__lobbyCodeEntry.get()
-        teamName = self.__teamNameEntry.get()
-        
-        uri = f"ws://{SERVER}/ws/{lobbyCode}/{teamName}"
         outgoingCommands.put({"command": "start"})
         
 
