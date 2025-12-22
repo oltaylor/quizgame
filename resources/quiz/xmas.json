@@ -308,5 +308,65 @@
       "D": "Denmark"
     },
     "answer": "A"
+  },
+  {
+    "question": "In which modern-day country was Saint Nicholas born?",
+    "options": {
+      "A": "Greece",
+      "B": "Turkey",
+      "C": "Italy",
+      "D": "Germany"
+    },
+    "answer": "B"
+  },
+  {
+    "question": "Which popular Christmas beverage is also called 'milk punch'?",
+    "options": {
+      "A": "Eggnog",
+      "B": "Hot Chocolate",
+      "C": "Mulled Wine",
+      "D": "Apple Cider"
+    },
+    "answer": "A"
+  },
+  {
+    "question": "What decoration do elves traditionally have on the tips of their shoes?",
+    "options": {
+      "A": "Stars",
+      "B": "Pom-poms",
+      "C": "Bells",
+      "D": "Ribbons"
+    },
+    "answer": "C"
+  },
+  {
+    "question": "What is the name of the Grinch's dog in the movie 'How the Grinch Stole Christmas'?",
+    "options": {
+      "A": "Kevin",
+      "B": "Buddy",
+      "C": "Rex",
+      "D": "Max"
+    },
+    "answer": "D"
+  },
+  {
+    "question": "In the song 'The Twelve Days of Christmas', what gift is given on the seventh day?",
+    "options": {
+      "A": "Maids a-milking",
+      "B": "Lords a-leaping",
+      "C": "Swans a-swimming",
+      "D": "Pipers piping"
+    },
+    "answer": "C"
+  },
+  {
+    "question": "Which Christmas movie features a character named Jack Skellington?",
+    "options": {
+      "A": "The Nightmare Before Christmas",
+      "B": "Elf",
+      "C": "Home Alone",
+      "D": "A Christmas Carol"
+    },
+    "answer": "A"
   }
 ]
