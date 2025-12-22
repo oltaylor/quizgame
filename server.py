@@ -1,6 +1,5 @@
 import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from asyncio import sleep
 import jsonGetter
 
 app = FastAPI()
