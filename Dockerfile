@@ -15,4 +15,6 @@ RUN pip install --no-cache-dir \
     uvicorn[standard] \
     asyncio
 
+EXPOSE 676
+
 CMD ["python", "server.py"]
