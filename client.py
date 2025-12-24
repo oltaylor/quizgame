@@ -79,7 +79,7 @@ class LobbyScreen:
 
         self.__teamsFrame = ttk.Frame(self.__window.getWindow())
         self.__teamsFrame.pack(pady=20)
-        self.__teamsLabel = ttk.Label(self.__teamsFrame, text="Teams in Lobby:", font=("Segoe UI", 16))
+        self.__teamsLabel = ttk.Label(self.__teamsFrame, text="Teams in Lobby:", font=("Segoe UI", 12))
         self.__teamsLabel.pack(pady=10)
 
     def startGame(self):
@@ -130,12 +130,12 @@ class LobbyScreen:
                         self.__teamsFrame.destroy()
                         self.__teamsFrame = ttk.Frame(self.__window.getWindow())
                         self.__teamsFrame.pack(pady=20)
-                        self.__teamsLabel = ttk.Label(self.__teamsFrame, text="Teams in Lobby:", font=("Segoe UI", 20))
+                        self.__teamsLabel = ttk.Label(self.__teamsFrame, text="Teams in Lobby:", font=("Segoe UI", 12))
                         self.__teamsLabel.pack(pady=10)
 
                         teamNames = message["teamNames"]
                         for teamName in teamNames:
-                            teamLabel = ttk.Label(self.__teamsFrame, text=teamName, font=("Segoe UI", 18))
+                            teamLabel = ttk.Label(self.__teamsFrame, text=teamName, font=("Segoe UI", 12))
                             teamLabel.pack(pady=5)
                 
 
