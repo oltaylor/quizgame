@@ -6,7 +6,7 @@ import threading
 import asyncio
 import queue
 
-CLIENT_VERSION = "ALPHA"
+CLIENT_VERSION = "BETA 0.1"
 
 outgoingCommands = queue.Queue() # bridge between websocket thread and main thread
 incomingMessages = queue.Queue() # messages from server to main thread
@@ -177,9 +177,11 @@ class GameScreen:
         
         rowCounter = 0
         colCounter = 0
+        quizButtons = []
 
         for option, text in options.items():
-            oButton = ttk.Button(self.__buttonsGrid, text=text, command=lambda opt=option: self.checkQuizAnswer(opt, answer), style="Large.TButton")
+            oButton = ttk.Button(self.__buttonsGrid, text=text, command=lambda opt=option, buttons=quizButtons: self.checkQuizAnswer(opt, answer, buttons), style="Large.TButton")
+            quizButtons.append(oButton)
             oButton.grid(row=rowCounter, column=colCounter, padx=10, pady=10)
             colCounter += 1
             if colCounter > 1:
@@ -195,7 +197,11 @@ class GameScreen:
         self.pollIncomingMessages()
 
 
-    def checkQuizAnswer(self, selected, correct):
+    def checkQuizAnswer(self, selected, correct, buttons):
+        # Disable all quiz buttons to prevent multiple answers
+        for button in buttons:
+            button.config(state="disabled")
+            
         if selected == correct:
             result = "Correct!"
             self.updateScore(1)
@@ -226,18 +232,22 @@ class GameScreen:
         charadeLabel = ttk.Label(self.__gameFrame, text=charade, font=("Segoe UI", 20))
         charadeLabel.pack(pady=20)
 
-        correctButton = ttk.Button(self.__gameFrame, text="Correct", command=lambda: self.charadesAnswerPressed(True), style="Large.TButton")
+        correctButton = ttk.Button(self.__gameFrame, text="Correct", command=lambda: self.charadesAnswerPressed(True, correctButton, wrongButton), style="Large.TButton")
         correctButton.pack(pady=10) 
 
-        wrongButton = ttk.Button(self.__gameFrame, text="Wrong", command=lambda: self.charadesAnswerPressed(False), style="Large.TButton")
+        wrongButton = ttk.Button(self.__gameFrame, text="Wrong", command=lambda: self.charadesAnswerPressed(False, correctButton, wrongButton), style="Large.TButton")
         wrongButton.pack(pady=10)
 
-    def charadesAnswerPressed(self, correct):
+    def charadesAnswerPressed(self, correct, correctButton, wrongButton):
+        correctButton.config(state="disabled")
+        wrongButton.config(state="disabled")
+        
         if correct:
             self.updateScore(1)
             self.__resultLabel = ttk.Label(self.__gameFrame, text="Correct!", font=("Segoe UI", 20))
         else:
             self.__resultLabel = ttk.Label(self.__gameFrame, text="Wrong!", font=("Segoe UI", 20))
+        self.__resultLabel.pack(pady=20)
         self.__window.getWindow().after(2000, self.reset)
 
 
@@ -248,19 +258,23 @@ class GameScreen:
         promptLabel = ttk.Label(self.__gameFrame, text=f"{whoami["question"]}", font=("Segoe UI", 20), wraplength=600, justify="center")
         promptLabel.pack(pady=20)
 
-        # display option buttons
+        whoAmIButtons = []
         for x in range(len(whoami["options"])):
             option = whoami["options"][x]
-            oButton = ttk.Button(self.__gameFrame, text=option, command=lambda opt=option: self.checkWhoAmIAnswer(opt, whoami["answer"]), style="Large.TButton") # opt=option to bind current value
+            oButton = ttk.Button(self.__gameFrame, text=option, command=lambda opt=option, buttons=whoAmIButtons: self.checkWhoAmIAnswer(opt, whoami["answer"], buttons), style="Large.TButton") # opt=option to bind current value
+            whoAmIButtons.append(oButton)
             oButton.pack(pady=10)
 
-    def checkWhoAmIAnswer(self, selected, correct): # selected option and correct answer
+    def checkWhoAmIAnswer(self, selected, correct, buttons): # selected option and correct answer and buttons to be disabled
+        for button in buttons:
+            button.config(state="disabled")
+            
         if selected == correct:
             result = "Correct!"
             self.updateScore(1)
         else:
             result = f"Wrong! The correct answer was {correct}."
-        self.__window.getWindow().after(2000, self.reset)
+        self.__window.getWindow().after(1500, self.reset)
         self.__resultLabel = ttk.Label(self.__gameFrame, text=result, font=("Segoe UI", 20))
         self.__resultLabel.pack(pady=20)
 
@@ -288,6 +302,34 @@ class GameScreen:
                         self.charades(task)
                     elif gamemode == "whoami":
                         self.whoAmI(task)
+                
+                elif "status" in message:
+                    status = message["status"]
+                    if status == "roundEnded":
+                        self.__gameFrame.destroy()
+                        self.__gameFrame = ttk.Frame(self.__window.getWindow())
+                        self.__gameFrame.pack()
+                        roundEndLabel = ttk.Label(self.__gameFrame, text="Round Ended!", font=("Segoe UI", 24))
+                        roundEndLabel.pack(pady=20)
+                        # reset and restart timer after 2 minutes
+                        self.__window.getWindow().after(120000, self.reset)
+                
+                    elif status == "gameEnded":
+                        self.__gameFrame.destroy()
+                        self.__gameFrame = ttk.Frame(self.__window.getWindow())
+                        self.__gameFrame.pack()
+                        gameEndLabel = ttk.Label(self.__gameFrame, text="Game Ended!", font=("Segoe UI", 24))
+                        gameEndLabel.pack(pady=20)
+                        # request scores
+                        outgoingCommands.put({"command": "requestScores"})
+
+                elif "scores" in message:
+                    scores = message["scores"]
+                    scoresText = "Final Scores:\n"
+                    for team, score in scores.items():
+                        scoresText += f"{team}: {score}\n"
+                    scoresLabel = ttk.Label(self.__gameFrame, text=scoresText, font=("Segoe UI", 20))
+                    scoresLabel.pack(pady=20)
                 
         except queue.Empty:
             pass

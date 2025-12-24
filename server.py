@@ -1,6 +1,7 @@
 import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import jsonGetter
+import asyncio
 
 app = FastAPI()
 
@@ -11,6 +12,7 @@ class Lobby:
         self.lobbyCode = lobbyCode
         self.clients = {}
         self.host = None
+        self.__roundCount = 1
 
     def addClient(self, clientID: str, websocket: WebSocket):
         self.clients[clientID] = Client(clientID, websocket)
@@ -19,6 +21,22 @@ class Lobby:
 
     def getCode(self):
         return self.lobbyCode
+    
+    def startTimer(self):
+        async def timer(self):
+            await asyncio.sleep(90)
+            if self.__roundCount < 4:
+                self.__roundCount += 1
+                # Send round ended message to all clients
+                for client in self.clients.values():
+                    await client.getWebSocket().send_json({"status": "roundEnded"})
+                await asyncio.sleep(120)
+                asyncio.create_task(timer(self))
+            else:
+                # Send game ended message to all clients
+                for client in self.clients.values():
+                    await client.getWebSocket().send_json({"status": "gameEnded"})
+        asyncio.create_task(timer(self))
     
 class Client:
     def __init__(self, clientID: str, websocket: WebSocket):
@@ -89,6 +107,13 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
                     if lobby.getCode() == lobbyCode:
                         for client in lobby.clients.values():
                             await client.getWebSocket().send_json({"status": "start"})
+                        lobby.startTimer()
+            
+            elif command == "requestScores":
+                for lobby in activeLobbies:
+                    if lobby.getCode() == lobbyCode:
+                        scores = {client.getClientID(): client.getPoints() for client in lobby.clients.values()}
+                        await websocket.send_json({"scores": scores})
 
     except WebSocketDisconnect:
         print(f"Client {clientID} disconnected from lobby {lobbyCode}")
@@ -105,4 +130,4 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=676)
