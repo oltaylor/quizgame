@@ -151,6 +151,7 @@ class GameScreen:
         self.__score = 0 # score is kept track of both client and server side because it can then be displayed instantly without waiting for server response
         self.__title = Title(self.__window.getWindow())
         self.__resultLabel = None
+        self.__status = "running"
 
         self.__scoreLabel = ttk.Label(self.__window.getWindow(), text=f"Score: {self.__score}", font=("Segoe UI", 20))
         self.__scoreLabel.pack(pady=10)
@@ -288,7 +289,7 @@ class GameScreen:
             while True:
                 message = incomingMessages.get_nowait()
                 print(f"Received message from server: {message}")
-                if "type" in message and "task" in message:
+                if "type" in message and "task" in message and self.__status == "running":
                     gamemode = message["type"]
                     task = message["task"]
                     if gamemode == "quiz":
@@ -306,6 +307,7 @@ class GameScreen:
                 elif "status" in message:
                     status = message["status"]
                     if status == "roundEnded":
+                        self.__status = "roundEnded"
                         self.__gameFrame.destroy()
                         self.__gameFrame = ttk.Frame(self.__window.getWindow())
                         self.__gameFrame.pack()
@@ -313,8 +315,10 @@ class GameScreen:
                         roundEndLabel.pack(pady=20)
                         # reset and restart timer after 2 minutes
                         self.__window.getWindow().after(120000, self.reset)
+                        self.__status = "running"
                 
                     elif status == "gameEnded":
+                        self.__status = "gameEnded"
                         self.__gameFrame.destroy()
                         self.__gameFrame = ttk.Frame(self.__window.getWindow())
                         self.__gameFrame.pack()
