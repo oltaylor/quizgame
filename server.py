@@ -43,6 +43,7 @@ class Client:
         self.__clientID = clientID
         self.__websocket = websocket
         self.__points = 0
+        self.__answeredUIDs = []
     
     def getClientID(self):
         return self.__clientID
@@ -55,9 +56,15 @@ class Client:
     
     def addPoints(self, points: int):
         self.__points += points
+    
+    def getAnsweredUIDs(self):
+        return self.__answeredUIDs
+    
+    def addAnsweredUID(self, uid: int):
+        self.__answeredUIDs.append(uid)
 
 @app.websocket("/ws/{lobbyCode}/{clientID}")
-async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str): # subroutine for handling connections
+async def websocketEndpoint(websocket: WebSocket, lobbyCode: str, clientID: str): # subroutine for handling connections
     await websocket.accept() # accept the connection of any incoming client
     if lobbyCode not in [lobby.getCode() for lobby in activeLobbies]:
         # create lobby if not exists
@@ -80,17 +87,28 @@ async def websocket_endpoint(websocket: WebSocket, lobbyCode: str, clientID: str
             command = data.get("command")
 
             if command == "newTask":
-                gamemode = random.choice(["charades", "quiz", "whoami"])
-                if gamemode == "quiz":
-                    print("Generating new quiz question")
-                    task = jsonGetter.getQuestion()
-                elif gamemode == "charades":
-                    print("Generating new charades prompt")
-                    task = jsonGetter.getCharade()
-                elif gamemode == "whoami":
-                    print("Generating new whoami prompt")
-                    task = jsonGetter.getWhoAmI()
-                await websocket.send_json({"type": gamemode, "task": task})
+
+                answeredUIDs = lobby.clients[clientID].getAnsweredUIDs()
+                uid = 0
+
+                while uid not in answeredUIDs:
+                    gamemode = random.choice(["charades", "quiz", "whoami"])
+                    if gamemode == "quiz":
+                        print("Generating new quiz question")
+                        task = jsonGetter.getQuestion()
+                    elif gamemode == "charades":
+                        print("Generating new charades prompt")
+                        task = jsonGetter.getCharade()
+                    elif gamemode == "whoami":
+                        print("Generating new whoami prompt")
+                        task = jsonGetter.getWhoAmI()
+                    lobby.clients[clientID].addAnsweredUID(task["uid"])
+                    await websocket.send_json({"type": gamemode, "task": task})
+                    break
+
+                    # TO ADD: prevent infinite loop if all tasks are answered
+                
+                
 
             elif command == "addPoints":
                 points = data.get("points", 0) # default to 0 if not provided

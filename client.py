@@ -68,7 +68,7 @@ class LobbyScreen:
         self.__serverLabel = ttk.Label(self.__window.getWindow(), text=f"Server:", font=("Segoe UI", 16))
         self.__serverLabel.pack(pady=10)
         self.__serverEntry = ttk.Entry(self.__window.getWindow(), font=("Segoe UI", 16))
-        self.__serverEntry.insert(0, "localhost:8000")
+        self.__serverEntry.insert(0, "localhost:676")
         self.__serverEntry.pack(pady=5)
 
         self.__joinLobbyButton = ttk.Button(self.__window.getWindow(), text="Join Lobby", command=lambda: self.joinLobby(self.__serverEntry.get()), style="Large.TButton")
@@ -300,7 +300,7 @@ class GameScreen:
                         self.quiz(questionText, options, answer)
 
                     elif gamemode == "charades":
-                        self.charades(task)
+                        self.charades(task["charade"])
                     elif gamemode == "whoami":
                         self.whoAmI(task)
                 

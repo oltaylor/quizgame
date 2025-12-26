@@ -8,7 +8,7 @@ def getQuestion():
 
 def getCharade():
     with open('resources/charades/xmas.json', 'r') as f:
-        charades = json.load(f).get("charades", [])
+        charades = json.load(f)
     return choice(charades)
 
 def getWhoAmI():
