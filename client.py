@@ -6,7 +6,7 @@ import threading
 import asyncio
 import queue
 
-CLIENT_VERSION = "BETA 0.1"
+CLIENT_VERSION = "BETA 0.2"
 
 outgoingCommands = queue.Queue() # bridge between websocket thread and main thread
 incomingMessages = queue.Queue() # messages from server to main thread
