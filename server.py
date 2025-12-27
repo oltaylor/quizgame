@@ -89,24 +89,23 @@ async def websocketEndpoint(websocket: WebSocket, lobbyCode: str, clientID: str)
             if command == "newTask":
 
                 answeredUIDs = lobby.clients[clientID].getAnsweredUIDs()
-                uid = 0
+                
+                gamemode, task = await genTask()
+                uid = task["uid"]
 
-                while uid not in answeredUIDs:
-                    gamemode = random.choice(["charades", "quiz", "whoami"])
-                    if gamemode == "quiz":
-                        print("Generating new quiz question")
-                        task = jsonGetter.getQuestion()
-                    elif gamemode == "charades":
-                        print("Generating new charades prompt")
-                        task = jsonGetter.getCharade()
-                    elif gamemode == "whoami":
-                        print("Generating new whoami prompt")
-                        task = jsonGetter.getWhoAmI()
-                    lobby.clients[clientID].addAnsweredUID(task["uid"])
+                attempts = 0
+                max_attempts = 100
+                while uid in answeredUIDs and attempts < max_attempts:
+                    gamemode, task = await genTask()
+                    uid = task["uid"]
+                    attempts += 1
+                
+                if attempts < max_attempts:
+                    lobby.clients[clientID].addAnsweredUID(uid)
                     await websocket.send_json({"type": gamemode, "task": task})
-                    break
-
-                    # TO ADD: prevent infinite loop if all tasks are answered
+                else:
+                    # All tasks answered, send error or reset
+                    await websocket.send_json({"status": "error", "errorMessage": "All tasks completed"})
                 
                 
 
@@ -133,6 +132,10 @@ async def websocketEndpoint(websocket: WebSocket, lobbyCode: str, clientID: str)
                         scores = {client.getClientID(): client.getPoints() for client in lobby.clients.values()}
                         await websocket.send_json({"scores": scores})
 
+            else:
+                print(f"Unknown command from {clientID} in lobby {lobbyCode}: {command}")
+                await websocket.send_json({"status": "error", "errorMessage": "Unknown command"})
+
     except WebSocketDisconnect:
         print(f"Client {clientID} disconnected from lobby {lobbyCode}")
         for lobby in activeLobbies:
@@ -145,6 +148,19 @@ async def websocketEndpoint(websocket: WebSocket, lobbyCode: str, clientID: str)
                     activeLobbies.remove(lobby)
                     print(f"Lobby {lobbyCode} removed due to no active clients")
 
+async def genTask():
+    gamemode = random.choice(["charades", "quiz", "whoami"])
+    if gamemode == "quiz":
+        print("Generating new quiz question")
+        task = jsonGetter.getQuestion()
+    elif gamemode == "charades":
+        print("Generating new charades prompt")
+        task = jsonGetter.getCharade()
+    elif gamemode == "whoami":
+        print("Generating new whoami prompt")
+        task = jsonGetter.getWhoAmI()
+
+    return gamemode, task
 
 if __name__ == "__main__":
     import uvicorn

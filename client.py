@@ -21,7 +21,7 @@ def websocketHandlerThread(uri):
                     cmd = None
 
                 if cmd is not None:
-                    print(f"Sending command to server: {cmd}")
+                    # print(f"Sending command to server: {cmd}")
                     await websocket.send(json.dumps(cmd))
                 
                 try:
@@ -42,7 +42,6 @@ class Window:
         self.__window.resizable(False,False)
         self.__window.title(f"XMAS GAME Client - Running version v{CLIENT_VERSION}")
         
-        # Configure button styles for larger text
         style = ttk.Style()
         style.configure('Large.TButton', font=('Segoe UI', 16))
     
@@ -109,7 +108,7 @@ class LobbyScreen:
         try:
             while True:
                 message = incomingMessages.get_nowait()
-                print(f"Received message from server: {message}")
+                # print(f"Received message from server: {message}")
 
                 if "status" in message:
                     status = message["status"]
@@ -119,7 +118,9 @@ class LobbyScreen:
                             self.__startButton.config(state="normal")
 
                     elif status == "error":
-                        print(f"Error from server: {message['errorMessage']}")
+                        errorMessage = message["errorMessage"]
+                        print(f"Error from server: {errorMessage}")
+                        self.errorPopup(errorMessage)
 
                     elif status == "start":
                         print("Game starting!")
@@ -143,6 +144,14 @@ class LobbyScreen:
             pass
             
         self.__window.getWindow().after(100, self.pollIncomingMessages)
+    
+    def errorPopup(self, errorMessage):
+        errorWindow = tk.Toplevel(self.__window.getWindow())
+        errorWindow.title("Error")
+        errorLabel = ttk.Label(errorWindow, text=errorMessage)
+        errorLabel.pack(pady=20)
+        okButton = ttk.Button(errorWindow, text="OK", command=errorWindow.destroy, style="Large.TButton")
+        okButton.pack(pady=10)
 
 
 class GameScreen:
@@ -167,6 +176,14 @@ class GameScreen:
 
     def getWindow(self):
         return self.__window.getWindow()
+    
+    def errorPopup(self, errorMessage):
+        errorWindow = tk.Toplevel(self.__window.getWindow())
+        errorWindow.title("Error")
+        errorLabel = ttk.Label(errorWindow, text=errorMessage)
+        errorLabel.pack(pady=20)
+        okButton = ttk.Button(errorWindow, text="OK", command=errorWindow.destroy, style="Large.TButton")
+        okButton.pack(pady=10)
 
     def quiz(self, question, options, answer):
         print("Entering quiz")
@@ -288,15 +305,14 @@ class GameScreen:
         try:
             while True:
                 message = incomingMessages.get_nowait()
-                print(f"Received message from server: {message}")
+                # print(f"Received message from server: {message}")
                 if "type" in message and "task" in message and self.__status == "running":
                     gamemode = message["type"]
                     task = message["task"]
                     if gamemode == "quiz":
-                        questionData = task
-                        questionText = questionData["question"]
-                        options = questionData["options"]
-                        answer = questionData["answer"]
+                        questionText = task["question"]
+                        options = task["options"]
+                        answer = task["answer"]
                         self.quiz(questionText, options, answer)
 
                     elif gamemode == "charades":
@@ -335,9 +351,12 @@ class GameScreen:
                     scoresLabel = ttk.Label(self.__gameFrame, text=scoresText, font=("Segoe UI", 20))
                     scoresLabel.pack(pady=20)
                 
+                else:
+                    self.errorPopup("Unknown message from server.")
+                
         except queue.Empty:
             pass
-            
+        
         self.__window.getWindow().after(100, self.pollIncomingMessages)
 
 
