@@ -207,6 +207,7 @@ class GameScreen:
                 rowCounter += 1
 
     def reset(self):
+        self.__status = "running"
         self.__gameFrame.destroy()
         self.__gameFrame = ttk.Frame(self.__window.getWindow())
         self.__gameFrame.pack()
@@ -331,7 +332,6 @@ class GameScreen:
                         roundEndLabel.pack(pady=20)
                         # reset and restart timer after 2 minutes
                         self.__window.getWindow().after(120000, self.reset)
-                        self.__status = "running"
                 
                     elif status == "gameEnded":
                         self.__status = "gameEnded"
