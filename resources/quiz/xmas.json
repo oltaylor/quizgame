@@ -405,5 +405,82 @@
       "D": "A Christmas Carol"
     },
     "answer": "A"
+  },
+  {
+    "uid": 109,
+    "question": "What song did German soldiers sing during Christmas in the trenches to begin the Christmas Truce?",
+    "options": {
+      "A": "Away in a Manger",
+      "B": "Silent Night",
+      "C": "O Tannenbaum",
+      "D": "O Holy Night"
+    },
+    "answer": "B"
+  },
+  {
+    "uid": 110,
+    "question": "I am one of Santa's reindeer and my name means 'love' in Latin.",
+    "options": {
+      "A": "Vixen",
+      "B": "Rudolph",
+      "C": "Cupid",
+      "D": "Dasher"
+    },
+    "answer": "C"
+  },
+  {
+    "uid": 111,
+    "question": "How many points are on a traditional snowflake?",
+    "options": {
+      "A": "6",
+      "B": "8",
+      "C": "10",
+      "D": "12"
+    },
+    "answer": "A"
+  },
+  {
+    "uid": 112,
+    "question": "In the song 'Jingle Bells', what is the name of the horse?",
+    "options": {
+      "A": "Jingle",
+      "B": "Silver",
+      "C": "Dancer",
+      "D": "Bobtail"
+    },
+    "answer": "D"
+  },
+  {
+    "uid": 113,
+    "question": "Which Christmas song was originally written for Thanksgiving?",
+    "options": {
+      "A": "Deck the Halls",
+      "B": "Jingle Bells",
+      "C": "Deck the Halls",
+      "D": "Frosty the Snowman"
+    },
+    "answer": "B"
+  },
+  {
+    "uid": 114,
+    "question": "In the movie 'Elf', what is the first rule of The Code of Elves?",
+    "options": {
+      "A": "Treat every day like Christmas",
+      "B": "Always wear a hat",
+      "C": "Sing loud for all to hear",
+      "D": "Make toys for children"
+    },
+    "answer": "A"
+  },
+  {
+    "uid": 115,
+    "question": "In which country are Christmas trees decorated in spider's webs for good luck?",
+    "options": {
+      "A": "Germany",
+      "B": "Ukraine",
+      "C": "Turkey",
+      "D": "Argentina"
+    },
+    "answer": "B"
   }
 ]
