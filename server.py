@@ -31,6 +31,7 @@ class Lobby:
                 for client in self.clients.values():
                     await client.getWebSocket().send_json({"status": "roundEnded"})
                 await asyncio.sleep(120)
+                await client.getWebSocket().send_json({"status": "restart"})
                 asyncio.create_task(timer(self))
             else:
                 # Send game ended message to all clients

@@ -124,8 +124,12 @@ class LobbyScreen:
 
                     elif status == "start":
                         print("Game starting!")
-                        self.__window.getWindow().destroy()
-                        self.__gameScreen = GameScreen(Window())
+                        widgets_before = len(self.__window.getWindow().winfo_children())
+                        for widget in self.__window.getWindow().winfo_children():
+                            widget.destroy()
+                        print(f"Cleared {widgets_before} widgets from lobby screen")
+                        self.__gameScreen = GameScreen(self.__window)
+                        return
                         
                     elif status == "teamUpdate":
                         self.__teamsFrame.destroy()
@@ -207,13 +211,12 @@ class GameScreen:
                 rowCounter += 1
 
     def reset(self):
-        self.__status = "running"
-        self.__gameFrame.destroy()
-        self.__gameFrame = ttk.Frame(self.__window.getWindow())
-        self.__gameFrame.pack()
-        
-        self.requestNewTask()
-        self.pollIncomingMessages()
+        if self.__status == "running":
+            self.__gameFrame.destroy()
+            self.__gameFrame = ttk.Frame(self.__window.getWindow())
+            self.__gameFrame.pack()
+            
+            self.requestNewTask()
 
 
     def checkQuizAnswer(self, selected, correct, buttons):
@@ -304,10 +307,47 @@ class GameScreen:
 
     def pollIncomingMessages(self):
         try:
-            while True:
-                message = incomingMessages.get_nowait()
-                # print(f"Received message from server: {message}")
-                if "type" in message and "task" in message and self.__status == "running":
+            toProcess = []
+            while incomingMessages.empty() == False:
+                toProcess.append(incomingMessages.get_nowait())
+        except queue.Empty:
+            pass
+
+        for message in toProcess:
+            if "status" in message:
+                status = message["status"]
+                if status == "roundEnded":
+                    print("Round ended received")
+                    self.__status = "roundEnded"
+                    self.__gameFrame.destroy()
+                    self.__gameFrame = ttk.Frame(self.__window.getWindow())
+                    self.__gameFrame.pack()
+                    roundEndLabel = ttk.Label(self.__gameFrame, text="Round Ended!", font=("Segoe UI", 24))
+                    roundEndLabel.pack(pady=20)
+                    break
+                
+                elif status == "gameEnded":
+                    self.__status = "gameEnded"
+                    self.__gameFrame.destroy()
+                    self.__gameFrame = ttk.Frame(self.__window.getWindow())
+                    self.__gameFrame.pack()
+                    gameEndLabel = ttk.Label(self.__gameFrame, text="Game Ended!", font=("Segoe UI", 24))
+                    gameEndLabel.pack(pady=20)
+                    # request scores
+                    outgoingCommands.put({"command": "requestScores"})
+                    break
+
+                elif status == "restart":
+                    print("Restarting game as per server instruction")
+                    self.__status = "running"
+                    self.__gameFrame.destroy()
+                    self.__gameFrame = ttk.Frame(self.__window.getWindow())
+                    self.__gameFrame.pack()
+                    self.requestNewTask()
+                    break
+            
+            elif "type" in message and "task" in message:
+                if self.__status == "running":
                     gamemode = message["type"]
                     task = message["task"]
                     if gamemode == "quiz":
@@ -320,42 +360,20 @@ class GameScreen:
                         self.charades(task["charade"])
                     elif gamemode == "whoami":
                         self.whoAmI(task)
-                
-                elif "status" in message:
-                    status = message["status"]
-                    if status == "roundEnded":
-                        self.__status = "roundEnded"
-                        self.__gameFrame.destroy()
-                        self.__gameFrame = ttk.Frame(self.__window.getWindow())
-                        self.__gameFrame.pack()
-                        roundEndLabel = ttk.Label(self.__gameFrame, text="Round Ended!", font=("Segoe UI", 24))
-                        roundEndLabel.pack(pady=20)
-                        # reset and restart timer after 2 minutes
-                        self.__window.getWindow().after(120000, self.reset)
-                
-                    elif status == "gameEnded":
-                        self.__status = "gameEnded"
-                        self.__gameFrame.destroy()
-                        self.__gameFrame = ttk.Frame(self.__window.getWindow())
-                        self.__gameFrame.pack()
-                        gameEndLabel = ttk.Label(self.__gameFrame, text="Game Ended!", font=("Segoe UI", 24))
-                        gameEndLabel.pack(pady=20)
-                        # request scores
-                        outgoingCommands.put({"command": "requestScores"})
-
-                elif "scores" in message:
-                    scores = message["scores"]
-                    scoresText = "Final Scores:\n"
-                    for team, score in scores.items():
-                        scoresText += f"{team}: {score}\n"
-                    scoresLabel = ttk.Label(self.__gameFrame, text=scoresText, font=("Segoe UI", 20))
-                    scoresLabel.pack(pady=20)
-                
                 else:
-                    self.errorPopup("Unknown message from server.")
-                
-        except queue.Empty:
-            pass
+                    print("Ignoring task as round/game has ended.")
+
+            elif "scores" in message:
+                scores = message["scores"]
+                scoresText = "Final Scores:\n"
+                for team, score in scores.items():
+                    scoresText += f"{team}: {score}\n"
+                scoresLabel = ttk.Label(self.__gameFrame, text=scoresText, font=("Segoe UI", 20))
+                scoresLabel.pack(pady=20)
+            
+            else:
+                self.errorPopup("Unknown message from server.")
+                    
         
         self.__window.getWindow().after(100, self.pollIncomingMessages)
 
